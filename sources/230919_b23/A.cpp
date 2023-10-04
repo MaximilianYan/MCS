@@ -6,15 +6,12 @@
 
 #include <iostream>
 #include <vector>
+#include <cmath>
 
 using namespace std;
 
-int abs(int a) {
-    return a < 0 ? -a : a;
-}
-
-int mulsgn(int n, int sgn) {
-    return sgn == 0 ? 0 : sgn < 0 ? -n : n;
+int sgn(int a) {
+    return a < 0 ? -1 : a > 0 ? 1 : 0;
 }
 
 int main() {
@@ -29,6 +26,6 @@ int main() {
     if (abs(target) <= d)
         cout << b << endl;
     else
-        cout << a + mulsgn(d, target) << endl;
+        cout << a + d * sgn(target) << endl;
 
 }
