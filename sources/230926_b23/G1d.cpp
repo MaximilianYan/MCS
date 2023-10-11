@@ -22,7 +22,7 @@ int main() {
     cin >> n;
 
     vector<int> grandNums(n + 1, 0);
-    vector<int> possible({ 1, 2 });
+    vector<int> possible({ 1, 3, 5 });
 
     for (int i = 0; i <= n; ++i) {
 
