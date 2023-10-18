@@ -1,5 +1,5 @@
-set(CONTEST 230926_b23)
-set(PROBLEM G2e)
+set(CONTEST 231003_b23)
+set(PROBLEM A)
 
 cmake_minimum_required(VERSION 3.0.0)
 project(MCSContest VERSION 0.1.0 LANGUAGES C CXX)
