@@ -35,16 +35,16 @@ public:
         return stickSeq[n];
     }
 
-    Fence push(int n, int nn) const {
+    Fence push(int n, int nn, int downCount) const {
         vector<short> newSeq(stickSeq);
 
-        if (nn == 0 || nn == seqNSize(n) - 1) {
-            newSeq[n]--;
+        if (nn == 0 || nn == seqNSize(n) - downCount) {
+            newSeq[n] -= downCount;
             if (newSeq[n] == 0)
                 newSeq.erase(newSeq.begin() + n);
         } else {
             newSeq.emplace(newSeq.begin() + n, -7);
-            newSeq[n + 1] -= nn + 1;
+            newSeq[n + 1] -= nn + downCount;
             newSeq[n] = nn;
         }
 
@@ -81,11 +81,27 @@ int countGrand(const Fence& fence, map<Fence, int>& fenceMap) {
         set<int> grandNums;
         for (int n = 0; n < fence.seqCount(); ++n) {
             for (int nn = 0; nn < fence.seqNSize(n); ++nn) {
-                grandNums.emplace(countGrand(fence.push(n, nn), fenceMap));
+                for (int downCount = 1; downCount <= 2; ++downCount) {
+                    if (nn <= fence.seqNSize(n) - downCount) {
+                        grandNums.emplace(countGrand(fence.push(n, nn, downCount), fenceMap));
+                    }
+                }
             }
         }
         grand = mex(grandNums);
     }
+
+
+    /*{
+        for (int n = 0; n < fence.seqCount(); ++n) {
+            for (int nn = 0; nn < fence.seqNSize(n); ++nn) {
+                cout << "|";
+            }
+            cout << "_";
+        }
+
+        cout << " : (" << grand << ")" << endl;
+    }*/
 
 
     fenceMap.emplace(fence, grand);
@@ -99,8 +115,9 @@ int main() {
     Fence startFence(vector<short>(1, n));
     map<Fence, int> fenceMap;
 
-    int grand = countGrand(startFence, fenceMap);
+    // int grand = countGrand(startFence, fenceMap);
     // cout << "g(" << n << ") = " << grand << endl;
+    int grand = 1;
 
     if (grand)
         cout << "First" << endl;
