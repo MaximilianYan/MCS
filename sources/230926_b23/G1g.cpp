@@ -22,7 +22,7 @@ int mex(const set<int>& nums) {
 class Fence {
 public:
 
-    Fence(const vector<short>& seq) : stickSeq(seq) {};
+    Fence(const set<short>& seq) : stickSeq(seq) {};
 
     // all counting starts with 0
     // all sizes starts with 1
@@ -31,40 +31,51 @@ public:
         return stickSeq.size();
     }
 
-    short seqNSize(int n) const {
-        return stickSeq[n];
-    }
-
     Fence push(int n, int nn, int downCount) const {
-        vector<short> newSeq(stickSeq);
+        set<short> newSeq(stickSeq);
 
-        if (nn == 0 || nn == seqNSize(n) - downCount) {
-            newSeq[n] -= downCount;
-            if (newSeq[n] == 0)
-                newSeq.erase(newSeq.begin() + n);
+        if (nn == 0 || nn == n - downCount) {
+            newSeq.erase(n);
+
+            if (n != downCount)
+                addSeq(newSeq, n - downCount);
         } else {
-            newSeq.emplace(newSeq.begin() + n, -7);
-            newSeq[n + 1] -= nn + downCount;
-            newSeq[n] = nn;
+            newSeq.erase(n);
+
+            addSeq(newSeq, nn);
+            addSeq(newSeq, n - nn - downCount);
         }
 
         return Fence(newSeq);
     }
 
     bool operator<(const Fence& right) const {
-        if (this->stickSeq.size() < right.stickSeq.size()) return true;
-        if (this->stickSeq.size() > right.stickSeq.size()) return false;
+        return this->stickSeq < right.stickSeq;
 
-        for (int i = 0; i < this->stickSeq.size(); ++i) {
-            if (this->stickSeq[i] < right.stickSeq[i]) return true;
-            if (this->stickSeq[i] > right.stickSeq[i]) return false;
-        }
+        // if (this->stickSeq.size() < right.stickSeq.size()) return true;
+        // if (this->stickSeq.size() > right.stickSeq.size()) return false;
 
-        return false;
+        // for (int i = 0; i < this->stickSeq.size(); ++i) {
+            // if (this->stickSeq[i] < right.stickSeq[i]) return true;
+            // if (this->stickSeq[i] > right.stickSeq[i]) return false;
+        // }
+
+        // return false;
+    }
+
+    const set<short>& getSeq() const {
+        return stickSeq;
     }
 
 private:
-    const vector<short> stickSeq;
+    const set<short> stickSeq;
+
+    static void addSeq(set<short>& seq, short n) {
+        if (seq.count(n))
+            seq.erase(n);
+        else
+            seq.emplace(n);
+    }
 };
 
 int countGrand(const Fence& fence, map<Fence, int>& fenceMap) {
@@ -79,10 +90,10 @@ int countGrand(const Fence& fence, map<Fence, int>& fenceMap) {
 
 
         set<int> grandNums;
-        for (int n = 0; n < fence.seqCount(); ++n) {
-            for (int nn = 0; nn < fence.seqNSize(n); ++nn) {
+        for (short n : fence.getSeq()) {
+            for (int nn = 0; nn < n; ++nn) {
                 for (int downCount = 1; downCount <= 2; ++downCount) {
-                    if (nn <= fence.seqNSize(n) - downCount) {
+                    if (nn <= n - downCount) {
                         grandNums.emplace(countGrand(fence.push(n, nn, downCount), fenceMap));
                     }
                 }
@@ -112,12 +123,12 @@ int main() {
     int n = 0;
     cin >> n;
 
-    Fence startFence(vector<short>(1, n));
+    Fence startFence(set<short>({ (short)n }));
     map<Fence, int> fenceMap;
 
-    // int grand = countGrand(startFence, fenceMap);
+    int grand = countGrand(startFence, fenceMap);
     // cout << "g(" << n << ") = " << grand << endl;
-    int grand = 1;
+    // int grand = 1;
 
     if (grand)
         cout << "First" << endl;
