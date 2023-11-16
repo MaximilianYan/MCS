@@ -10,7 +10,7 @@
 
 using namespace std;
 
-typedef double VecType_t;
+typedef long double VecType_t;
 class Vec2 {
 public:
     VecType_t x, y;
@@ -55,6 +55,30 @@ VecType_t operator,(const Vec2& lo, const Vec2& ro) {
     return lo.x * ro.x + lo.y * ro.y;
 }
 
+typedef VecType_t MatType_t;
+class Mat {
+public:
+    MatType_t data[2][2];
+
+    Mat() {
+        data[0][0] = 0;
+        data[0][1] = 0;
+        data[1][0] = 0;
+        data[1][1] = 0;
+    }
+    Mat(MatType_t a, MatType_t b, MatType_t c, MatType_t d) {
+        data[0][0] = a;
+        data[0][1] = b;
+        data[1][0] = c;
+        data[1][1] = d;
+    }
+
+    operator MatType_t() {
+        return data[0][0] * data[1][1] - data[0][1] * data[1][0];
+    }
+};
+
+
 typedef VecType_t LineType_t;
 class Line {
 public:
@@ -64,11 +88,11 @@ public:
 
     /// @brief Line via two points
     Line(Vec2 x, Vec2 y) {
-        if ((x[2] - y[2]) == 0) {
-            a = 0;
-            b = 1;
-            c = -x[2];
-        }
+        // if ((x[2] - y[2]) == 0) {
+            // a = 0;
+            // b = 1;
+            // c = -x[2];
+        // }
 
         a = -(x[2] - y[2]);
         b = x[1] - y[1];
@@ -109,10 +133,38 @@ ostream& operator<<(ostream& out, const Line& line) {
 }
 
 bool operator==(const Line& lo, const Line& ro) {
-    if (lo.a == 0 || ro.a == 0) {
-        return (lo.a == ro.a) && (lo.c * ro.b == ro.c * lo.b);
+    Mat mat_bc, mat_ac, mat_ab;
+
+    mat_bc = Mat(
+        lo.b, lo.c,
+        ro.b, ro.c
+    );
+    mat_ac = Mat(
+        lo.a, lo.c,
+        ro.a, ro.c
+    );
+    mat_ab = Mat(
+        lo.a, lo.b,
+        ro.a, ro.b
+    );
+
+    MatType_t det_bc = mat_bc;
+    MatType_t det_ac = mat_ac;
+    MatType_t det_ab = mat_ab;
+
+    if (det_ab == 0) {
+        if (det_bc == 0 && det_ac == 0) {
+            // coincedental
+            return true;
+        } else {
+            // parallel
+        }
     }
-    return (lo.b * ro.a == ro.b * lo.a) && (lo.c * ro.a == ro.c * lo.a);
+    return false;
+    // if (lo.a == 0 || ro.a == 0) {
+    //     return (lo.a == ro.a) && (lo.c * ro.b == ro.c * lo.b);
+    // }
+    // return (lo.b * ro.a == ro.b * lo.a) && (lo.c * ro.a == ro.c * lo.a);
 }
 
 bool operator!=(const Line& lo, const Line& ro) {
@@ -120,38 +172,97 @@ bool operator!=(const Line& lo, const Line& ro) {
 }
 
 bool operator%(const Line& lo, const Line& ro) {
-    if (lo == ro) {
-        return false;
+        Mat mat_bc, mat_ac, mat_ab;
+
+    mat_bc = Mat(
+        lo.b, lo.c,
+        ro.b, ro.c
+    );
+    mat_ac = Mat(
+        lo.a, lo.c,
+        ro.a, ro.c
+    );
+    mat_ab = Mat(
+        lo.a, lo.b,
+        ro.a, ro.b
+    );
+
+    MatType_t det_bc = mat_bc;
+    MatType_t det_ac = mat_ac;
+    MatType_t det_ab = mat_ab;
+
+    if (det_ab == 0) {
+        if (det_bc == 0 && det_ac == 0) {
+            // coincedental
+        } else {
+            return true;
+            // parallel
+        }
     }
-    if (lo.a == 0 || ro.a == 0) {
-        return (lo.a == ro.a);
-    }
-    return (lo.b * ro.a == ro.b * lo.a);
+    return false;
+    // if (lo == ro) {
+    //     return false;
+    // }
+    // if (lo.a == 0 || ro.a == 0) {
+    //     return (lo.a == ro.a);
+    // }
+    // return (lo.b * ro.a == ro.b * lo.a);
 }
 
 Vec2 operator^(const Line& lo, const Line& ro) {
-    if (lo.a == 0) {
-        Vec2 res(0, 0);
-        res[2] = -lo.c / lo.b;
-        res[1] = -(res[2] * ro.b + ro.c) / ro.a;
+    Mat mat_bc, mat_ac, mat_ab;
 
-        return res;
+    mat_bc = Mat(
+        lo.b, lo.c,
+        ro.b, ro.c
+    );
+    mat_ac = Mat(
+        lo.a, lo.c,
+        ro.a, ro.c
+    );
+    mat_ab = Mat(
+        lo.a, lo.b,
+        ro.a, ro.b
+    );
+
+    MatType_t det_bc = mat_bc;
+    MatType_t det_ac = mat_ac;
+    MatType_t det_ab = mat_ab;
+
+    if (det_ab == 0) {
+        if (det_bc == 0 && det_ac == 0) {
+            // coincedental
+            return Vec2(239000, 239000);
+        } else {
+            // parallel
+            return Vec2(-239000, -239000);
+        }
     }
 
-    if (ro.a == 0) {
-        Vec2 res(0, 0);
-        res[2] = -ro.c / ro.b;
-        res[1] = -(res[2] * lo.b + lo.c) / lo.a;
+    return Vec2(det_bc / det_ab, -det_ac / det_ab);
 
-        return res;
-    }
+    // if (lo.a == 0) {
+    //     Vec2 res(0, 0);
+    //     res[2] = -lo.c / lo.b;
+    //     res[1] = -(res[2] * ro.b + ro.c) / ro.a;
+
+    //     return res;
+    // }
+
+    // if (ro.a == 0) {
+    //     Vec2 res(0, 0);
+    //     res[2] = -ro.c / ro.b;
+    //     res[1] = -(res[2] * lo.b + lo.c) / lo.a;
+
+    //     return res;
+    // }
 
 
-    Vec2 res(0, 0);
-    res[2] = -(ro.a * lo.c - lo.a * ro.c) / (ro.a * lo.b - lo.a * ro.b);
-    res[1] = -(ro.a * lo.b * res[2] + ro.a * lo.c) / (ro.a * lo.a);
+    // Vec2 res(0, 0);
+    // res[2] = -(ro.a * lo.c - lo.a * ro.c) / (ro.a * lo.b - lo.a * ro.b);
+    // res[1] = -(ro.a * lo.b * res[2] + ro.a * lo.c) / (ro.a * lo.a);
 
-    return res;
+    // return res;
 }
 
 
@@ -160,8 +271,8 @@ int main() {
 
     cin >> line1 >> line2;
 
-    cout << "line 1: " << line1 << endl;
-    cout << "line 2: " << line2 << endl;
+    // cout << "line 1: " << line1 << endl;
+    // cout << "line 2: " << line2 << endl;
 
     if (line1 == line2) {
         cout << -1 << endl;
