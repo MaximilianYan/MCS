@@ -60,6 +60,13 @@ private:
         }
         Sum(const Sum& init) : length(init.length), profit(init.profit) {}
 
+        bool isBad() const {
+            if (profit < 0) {
+                return true;
+            }
+            return false;
+        }
+
         void setBad() {
             length = MAXNUM;
             profit = -1;
@@ -67,6 +74,12 @@ private:
 
         Sum operator+(const Stair::TYPE& value) const {
             Sum res(*this);
+
+            if (res.isBad()) {
+                res.setBad();
+                return res;
+            }
+
             res.length += 1;
 
             switch (value) {
@@ -88,6 +101,7 @@ private:
         bool operator>(const Sum& ro) const {
             // if (length < ro.length) return true;
             // if (length > ro.length) return false;
+            if (isBad()) return false;
 
             if (profit > ro.profit) return true;
             return false;
