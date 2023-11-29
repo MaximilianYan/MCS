@@ -21,11 +21,11 @@ class DSU {
 public:
     DSU(int n);
 
-    string ask(Edge verts) const;
+    string ask(Edge verts);
     void connect(Edge verts);
 
 private:
-    int root(int vert) const;
+    int root(int vert);
 
     vector<int> arcs;
 };
@@ -77,7 +77,7 @@ DSU::DSU(int n) : arcs(n, -1) {
     iota(arcs.begin(), arcs.end(), 0);
 }
 
-string DSU::ask(Edge verts) const {
+string DSU::ask(Edge verts) {
     stringstream res;
 
     if (root(verts.u) == root(verts.v)) {
@@ -96,6 +96,8 @@ void DSU::connect(Edge verts) {
     int v = root(verts.v);
 
     arcs[u] = v;
+
+
 
     // int oldColor = colors[verts.u];
     // for (int& verColor : colors) {
@@ -122,7 +124,7 @@ istream& operator>>(istream& input, Op& ro) {
     return input;
 }
 
-int DSU::root(int vert) const {
+int DSU::root(int vert) {
     if (arcs[vert] == vert) return vert;
-    return root(arcs[vert]);
+    return arcs[vert] = root(arcs[vert]);
 }
