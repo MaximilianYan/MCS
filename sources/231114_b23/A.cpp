@@ -28,7 +28,7 @@ private:
     int root(int vert);
 
     vector<int> arcs;
-    vector<int> sizes;
+    vector<int> ranks;
 };
 
 class Op {
@@ -74,7 +74,7 @@ int main() {
     return 0;
 }
 
-DSU::DSU(int n) : arcs(n, -1), sizes(n, 1) {
+DSU::DSU(int n) : arcs(n, -1), ranks(n, 0) {
     iota(arcs.begin(), arcs.end(), 0);
 }
 
@@ -96,17 +96,18 @@ void DSU::connect(Edge verts) {
     int u = root(verts.u);
     int v = root(verts.v);
 
-    if (sizes[u] > sizes[v])
+    if (ranks[u] > ranks[v])
         swap(u, v);
 
-    if (sizes[u] == -1 ||
-        sizes[v] == -1) {
+    if (ranks[u] == -1 ||
+        ranks[v] == -1) {
         cout << "WTF??" << endl;
     }
 
     arcs[u] = v;
-    sizes[v] += sizes[u];
-    sizes[u] = -1;
+    if (ranks[u] == ranks[v]) ranks[v]++;
+    // sizes[v] += sizes[u];
+    ranks[u] = -1;
 
 
 
