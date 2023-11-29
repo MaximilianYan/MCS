@@ -22,6 +22,7 @@ public:
     DSU(int n);
 
     string ask(Edge verts) const;
+    void connect(Edge verts);
 
 private:
     vector<int> colors;
@@ -61,6 +62,8 @@ int main() {
     for (int i = k - 1; i >= 0; --i) {
         if (quests[i].type == Op::Type::ASK)
             answer = dsu.ask(quests[i].edge) + "\n" + answer;
+        if (quests[i].type == Op::Type::CUT)
+            dsu.connect(quests[i].edge);
     }
 
     cout << answer;
@@ -82,6 +85,16 @@ string DSU::ask(Edge verts) const {
     }
 
     return res.str();
+}
+
+void DSU::connect(Edge verts) {
+    if (colors[verts.u] == colors[verts.v]) return;
+
+    int oldColor = colors[verts.u];
+    for (int& verColor : colors) {
+        if (verColor == oldColor)
+            verColor = colors[verts.v];
+    }
 }
 
 Op::Op() : type(ASK), edge({ -1, -1 }) {}
