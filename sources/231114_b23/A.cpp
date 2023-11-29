@@ -28,6 +28,7 @@ private:
     int root(int vert);
 
     vector<int> arcs;
+    vector<int> sizes;
 };
 
 class Op {
@@ -73,7 +74,7 @@ int main() {
     return 0;
 }
 
-DSU::DSU(int n) : arcs(n, -1) {
+DSU::DSU(int n) : arcs(n, -1), sizes(n, 1) {
     iota(arcs.begin(), arcs.end(), 0);
 }
 
@@ -95,7 +96,17 @@ void DSU::connect(Edge verts) {
     int u = root(verts.u);
     int v = root(verts.v);
 
+    if (sizes[u] > sizes[v])
+        swap(u, v);
+
+    if (sizes[u] == -1 ||
+        sizes[v] == -1) {
+        cout << "WTF??" << endl;
+    }
+
     arcs[u] = v;
+    sizes[v] += sizes[u];
+    sizes[u] = -1;
 
 
 
@@ -104,6 +115,11 @@ void DSU::connect(Edge verts) {
     //     if (verColor == oldColor)
     //         verColor = colors[verts.v];
     // }
+}
+
+int DSU::root(int vert) {
+    if (arcs[vert] == vert) return vert;
+    return arcs[vert] = root(arcs[vert]);
 }
 
 Op::Op() : type(ASK), edge({ -1, -1 }) {}
@@ -122,9 +138,4 @@ istream& operator>>(istream& input, Op& ro) {
     ro.edge.v--;
 
     return input;
-}
-
-int DSU::root(int vert) {
-    if (arcs[vert] == vert) return vert;
-    return arcs[vert] = root(arcs[vert]);
 }
