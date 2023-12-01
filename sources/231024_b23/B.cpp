@@ -46,7 +46,7 @@ istream& operator>>(istream& in, Vec2& vec) {
 }
 
 ostream& operator<<(ostream& out, const Vec2& vec) {
-    out << vec.x << " " << vec.y;
+    out << fixed << setprecision(6) << vec.x << " " << vec.y;
 
     return out;
 }
@@ -172,7 +172,7 @@ bool operator!=(const Line& lo, const Line& ro) {
 }
 
 bool operator%(const Line& lo, const Line& ro) {
-        Mat mat_bc, mat_ac, mat_ab;
+    Mat mat_bc, mat_ac, mat_ab;
 
     mat_bc = Mat(
         lo.b, lo.c,
