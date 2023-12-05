@@ -118,13 +118,24 @@ DTree::DTree() : root(nullptr) {}
 
 ostream& operator<<(ostream& output, DTree& ro) {
     ro.dfs(
-        nullptr,
+        [](Value_t value, void* outputPtr) -> void {
+        ostream& output = *(ostream*)outputPtr;
+
+        output << "(";
+    },
+
         [](Value_t value, void* outputPtr) -> void {
         ostream& output = *(ostream*)outputPtr;
 
         output << value;
     },
-        nullptr,
+
+        [](Value_t value, void* outputPtr) -> void {
+        ostream& output = *(ostream*)outputPtr;
+
+        output << ")";
+    },
+
         (void*)&output
     );
 
@@ -215,18 +226,6 @@ DTree operator+(const DTree& lo, const  DTree& ro) {
     lo.right() = (lo.right() + ro);
     return lo;
 }
-
-// void DTree::tempInsert(Node* newNode) {
-//     if (*this == nullptr) {
-//         *this = newNode;
-//         return;
-//     }
-//     if (*newNode <= *root) {
-//         left().tempInsert(newNode);
-//         // DTree(((Node*)(*this))->left).tempInsert(newNode);
-//         // ->left.tempInsert(newNode);
-//     }
-// }
 
 void DTree::dfs(DfsCBFunc_t preorder, DfsCBFunc_t inorder, DfsCBFunc_t postorder, void* userdata) {
     if (!*this) return;
