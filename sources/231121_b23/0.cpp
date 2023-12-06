@@ -31,6 +31,8 @@ public:
 
     friend ostream& operator<<(ostream& output, DTree& ro);
 
+    Value_t operator()();
+
 private:
     class Node {
     public:
@@ -181,6 +183,12 @@ ostream& operator<<(ostream& output, DTree& ro) {
     return output;
 }
 
+Value_t DTree::operator()() {
+    if (!*this) return 0;
+
+    return root->value;
+}
+
 // --------------------------------------------- DTREENODE  segment ---------------------------------------------
 // ---------------------------------------------------        ---------------------------------------------------
 // -----------------------------------------------------    -----------------------------------------------------
@@ -274,15 +282,17 @@ pair<DTree, DTree> operator/(const DTree& tree, const X_t& x) {
     if (!tree) return { tree, tree };
 
     if (*tree < x) {
-        ///                 \x/
-        /// tree.left | r[0] | r[1]
+        ///                             \x/
+        /// tree.left | tree.root | r[0] | r[1]
         auto r = DTree(tree.right()) / x;
-        return { tree.left() + r.first, r.second };
+        tree.right() = r.first;
+        return { tree, r.second };
     } else {
         ///     \x/
-        /// l[0] | l[1] | tree.right()
+        /// l[0] | l[1] | tree.root | tree.right
         auto r = DTree(tree.left()) / x;
-        return { r.first, r.second + tree.right() };
+        tree.left() = r.second;
+        return { r.first, tree };
     }
 }
 
