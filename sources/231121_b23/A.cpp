@@ -26,10 +26,16 @@ class DTree {
 public:
     DTree();
 
-    void insert(Value_t value, X_t x, Y_t y);
+    /// @brief returns DTree-pointer to created node
+    DTree insert(Value_t value, X_t x, Y_t y);
     void insert(Value_t value, X_t x);
 
     friend ostream& operator<<(ostream& output, DTree& ro);
+
+    Value_t operator()();
+
+    DTree l() const;
+    DTree r() const;
 
 private:
     class Node {
@@ -93,16 +99,42 @@ private:
 
 
 int main() {
+    int n = 0;
+    cin >> n;
+
+    vector<DTree> nodes(n + 1);
     DTree tree;
 
-    for (int i = 0; i < int(1e6); ++i) {
-        DTree temp;
-        temp.insert(i, i);
-        tree = (tree + temp);
+    for (int i = 1; i <= n; ++i) {
+        int x = 0, y = 0;
+        cin >> x >> y;
+
+        nodes[i] = tree.insert(i, x, -y);
+    }
+    // cout << tree << endl;
+
+    struct NodeInfo {
+    public:
+        int p;
+        int l;
+        int r;
+    };
+    vector<NodeInfo> infos(n + 1, { 0, 0 ,0 });
+
+    nodes.erase(nodes.begin());
+    for (DTree& node : nodes) {
+        infos[node.l()()].p = node();
+        infos[node.r()()].p = node();
+
+        infos[node()].l = node.l()();
+        infos[node()].r = node.r()();
     }
 
-    // cout << tree;
-    cout << "done" << endl;
+    cout << "YES" << endl;
+    infos.erase(infos.begin());
+    for (NodeInfo& info : infos) {
+        cout << info.p << " " << info.l << " " << info.r << endl;
+    }
 
     return 0;
 }
@@ -135,12 +167,12 @@ RandomM DTree::randomm;
 
 DTree::DTree() : root(nullptr) {}
 
-void DTree::insert(Value_t value, X_t x, Y_t y) {
+DTree DTree::insert(Value_t value, X_t x, Y_t y) {
     Node* newNode = new Node(value, x, y);
 
     if (!*this) {
         root = newNode;
-        return;
+        return newNode;
     }
 
     ///          \x/
@@ -148,7 +180,7 @@ void DTree::insert(Value_t value, X_t x, Y_t y) {
     auto spl = *this / x;
     *this = spl.first + newNode + spl.second;
 
-    return;
+    return newNode;
 }
 
 void DTree::insert(Value_t value, X_t x) {
@@ -180,6 +212,20 @@ ostream& operator<<(ostream& output, DTree& ro) {
 
     return output;
 }
+
+Value_t DTree::operator()() {
+    if (!*this) return 0;
+
+    return root->value;
+}
+
+DTree DTree::l() const {
+    return left();
+}
+DTree DTree::r() const {
+    return right();
+}
+
 
 // --------------------------------------------- DTREENODE  segment ---------------------------------------------
 // ---------------------------------------------------        ---------------------------------------------------
@@ -274,15 +320,17 @@ pair<DTree, DTree> operator/(const DTree& tree, const X_t& x) {
     if (!tree) return { tree, tree };
 
     if (*tree < x) {
-        ///                 \x/
-        /// tree.left | r[0] | r[1]
+        ///                             \x/
+        /// tree.left | tree.root | r[0] | r[1]
         auto r = DTree(tree.right()) / x;
-        return { tree.left() + r.first, r.second };
+        tree.right() = r.first;
+        return { tree, r.second };
     } else {
         ///     \x/
-        /// l[0] | l[1] | tree.right()
+        /// l[0] | l[1] | tree.root | tree.right
         auto r = DTree(tree.left()) / x;
-        return { r.first, r.second + tree.right() };
+        tree.left() = r.second;
+        return { r.first, tree };
     }
 }
 
