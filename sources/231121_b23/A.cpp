@@ -2,6 +2,7 @@
 #include <random>
 #include <functional>
 #include <utility>
+#include <algorithm>
 
 using namespace std;
 
@@ -105,11 +106,28 @@ int main() {
     vector<DTree> nodes(n + 1);
     DTree tree;
 
-    for (int i = 1; i <= n; ++i) {
-        int x = 0, y = 0;
-        cin >> x >> y;
+    {
+        struct NodeInput {
+        public:
+            int i;
+            int x;
+            int y;
+        };
+        vector<NodeInput> input;
 
-        nodes[i] = tree.insert(i, x, -y);
+        for (int i = 1; i <= n; ++i) {
+            int x = 0, y = 0;
+            cin >> x >> y;
+            input.push_back({ i, x, y });
+        }
+
+        sort(input.begin(), input.end(), [](const NodeInput& lo, const NodeInput& ro) -> bool {
+            return lo.y > ro.y;
+        });
+
+        for (const NodeInput& node : input) {
+            nodes[node.i] = tree.insert(node.i, node.x, -node.y);
+        }
     }
     // cout << tree << endl;
 
