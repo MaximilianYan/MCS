@@ -46,6 +46,9 @@ public:
 };
 
 int main() {
+    cin.tie(0);
+    ios_base::sync_with_stdio(false);
+
     int n = 0, m = 0, k = 0;
     cin >> n >> m >> k;
 
@@ -61,15 +64,17 @@ int main() {
         cin >> quests[i];
     }
 
-    string answer = "";
+    vector<string> answer;
     for (int i = k - 1; i >= 0; --i) {
         if (quests[i].type == Op::Type::ASK)
-            answer = dsu.ask(quests[i].edge) + "\n" + answer;
+            answer.push_back(dsu.ask(quests[i].edge) + "\n");
         if (quests[i].type == Op::Type::CUT)
             dsu.connect(quests[i].edge);
     }
 
-    cout << answer;
+    for (int i = answer.size() - 1; i >= 0; --i) {
+        cout << answer[i];
+    }
 
     return 0;
 }
