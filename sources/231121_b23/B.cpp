@@ -2,7 +2,6 @@
 #include <random>
 #include <functional>
 #include <utility>
-#include <algorithm>
 
 using namespace std;
 
@@ -27,20 +26,15 @@ class DTree {
 public:
     DTree();
 
-    /// @brief returns DTree-pointer to created node
-    DTree insert(Value_t value, X_t x, Y_t y);
+    void insert(Value_t value, X_t x, Y_t y);
     void insert(Value_t value, X_t x);
 
     friend ostream& operator<<(ostream& output, DTree& ro);
 
     Value_t operator()();
 
-    bool lessX(const DTree& ro);
 
-    DTree l() const;
-    DTree r() const;
 
-private:
     class Node {
     public:
         Node(Value_t value, X_t x, Y_t y);
@@ -63,7 +57,7 @@ private:
         Node* left;
         Node* right;
         Value_t value;
-    private:
+        // private:
         X_t x;
         Y_t y;
 
@@ -72,15 +66,18 @@ private:
     friend bool operator>(const DTree::Node& lo, const DTree::Node& ro);
     friend bool operator<<=(const DTree::Node& lo, const DTree::Node& ro);
     friend bool operator>>(const DTree::Node& lo, const DTree::Node& ro);
+    Node* findX(X_t x);
+    static X_t getMaxX(Node* node);
+
+
+
 
     DTree(Node* nodePtr);
     operator Node* ();
     operator Node const* () const;
     bool operator==(Node const* const& ro) const;
     bool operator==(const std::nullptr_t& ro) const;
-public:
     bool operator!() const;
-private:
 
     Node*& left() const;
     Node*& right() const;
@@ -102,84 +99,39 @@ private:
     static RandomM randomm;
 };
 
+void insert(DTree& tree, int l, int k) {
+    if (tree.findX(l) == nullptr) {
+        tree.insert(k, l);
+    } else {
+        insert(tree, l + 1, tree.findX(l)->value);
+        tree.findX(l)->value = k;
+    }
+}
 
 int main() {
-    int n = 0;
-    cin >> n;
+    int n = 0, m = 0;
+    cin >> n >> m;
 
-    vector<DTree> nodes(n + 1);
     DTree tree;
 
-    {
-        struct NodeInput {
-        public:
-            int i;
-            int x;
-            int y;
-        };
-        vector<NodeInput> input;
+    for (int i = 0; i < n; ++i) {
+        int l = 0;
+        cin >> l;
+        insert(tree, l, i);
+    }
 
-        for (int i = 1; i <= n; ++i) {
-            int x = 0, y = 0;
-            cin >> x >> y;
-            input.push_back({ i, x, y });
+    int max = DTree::getMaxX(tree.root);
+
+    for (int i = 1; i <= max; ++i) {
+        if (tree.findX(i)) {
+            cout << tree.findX(i)->value;
+        } else {
+            cout << 0;
         }
-
-        sort(input.begin(), input.end(), [](const NodeInput& lo, const NodeInput& ro) -> bool {
-            return lo.y < ro.y;
-        });
-
-        vector<DTree> leaves;
-
-        for (const NodeInput& node : input) {
-            DTree newNode;
-            newNode.insert(node.i, node.x, -node.y);
-            nodes[node.i] = newNode;
-
-            if (leaves.empty() || leaves.rbegin()->lessX(newNode)) {
-                leaves.push_back(newNode);
-            } else
-                for (int i = 0; i < leaves.size(); ++i) {
-                    if (!leaves[i].lessX(newNode)) {
-                        leaves.insert(leaves.begin() + i, newNode);
-
-                        if (i > 0 && !!leaves[i - 1].l() && !!leaves[i - 1].r()) {
-                            leaves.erase(leaves.begin() + i - 1);
-                            i--;
-                        }
-                        if (i < (leaves.size() - 1) && !!leaves[i + 1].l() && !!leaves[i + 1].r()) {
-                            leaves.erase(leaves.begin() + i + 1);
-                        }
-
-                        break;
-                    }
-                }
-        }
-    }
-    // cout << tree << endl;
-
-    struct NodeInfo {
-    public:
-        int p;
-        int l;
-        int r;
-    };
-    vector<NodeInfo> infos(n + 1, { 0, 0 ,0 });
-
-    nodes.erase(nodes.begin());
-    for (DTree& node : nodes) {
-        infos[node.l()()].p = node();
-        infos[node.r()()].p = node();
-
-        infos[node()].l = node.l()();
-        infos[node()].r = node.r()();
+        cout << " ";
     }
 
-    cout << "YES" << endl;
-    infos.erase(infos.begin());
-    for (NodeInfo& info : infos) {
-        cout << info.p << " " << info.l << " " << info.r << endl;
-    }
+    // cout << tree;
 
     return 0;
 }
@@ -195,6 +147,20 @@ int main() {
 // -----------------------------------------------------    -----------------------------------------------------
 // ------------------------------------------------------  ------------------------------------------------------
 // --------------------------------------------------------------------------------------------------------------
+
+DTree::Node* DTree::findX(X_t x) {
+    if (root->x == x) return root;
+    if (x < root->x) return root->left;
+    return root->right;
+}
+
+X_t DTree::getMaxX(Node* node) {
+    if (node->right == nullptr) {
+        return node->x;
+    }
+    return getMaxX(node->right);
+}
+
 
 RandomM::RandomM() : rd(), gen(rd()), distrib(0) {
 }
@@ -212,12 +178,12 @@ RandomM DTree::randomm;
 
 DTree::DTree() : root(nullptr) {}
 
-DTree DTree::insert(Value_t value, X_t x, Y_t y) {
+void DTree::insert(Value_t value, X_t x, Y_t y) {
     Node* newNode = new Node(value, x, y);
 
     if (!*this) {
         root = newNode;
-        return newNode;
+        return;
     }
 
     ///          \x/
@@ -225,7 +191,7 @@ DTree DTree::insert(Value_t value, X_t x, Y_t y) {
     auto spl = *this / x;
     *this = spl.first + newNode + spl.second;
 
-    return newNode;
+    return;
 }
 
 void DTree::insert(Value_t value, X_t x) {
@@ -263,18 +229,6 @@ Value_t DTree::operator()() {
 
     return root->value;
 }
-
-bool DTree::lessX(const DTree& ro) {
-    return *this < ro;
-}
-
-DTree DTree::l() const {
-    return left();
-}
-DTree DTree::r() const {
-    return right();
-}
-
 
 // --------------------------------------------- DTREENODE  segment ---------------------------------------------
 // ---------------------------------------------------        ---------------------------------------------------
