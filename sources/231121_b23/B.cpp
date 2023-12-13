@@ -1,352 +1,183 @@
+// basic treap: split, merge, insert, +remove
 #include <iostream>
 #include <random>
-#include <functional>
 #include <utility>
+#include <sstream>
 
 using namespace std;
 
-typedef int Value_t;
-typedef int X_t;
-typedef int Y_t;
+//random_device dev;
+//mt19937 gen (dev ());
+mt19937 gen(1234567890);
 
-class RandomM {
-public:
-    RandomM();
+struct Node;
+using PNode = Node*;
+struct Node
+{
+    int x;
+    int y;
+    PNode left;
+    PNode right;
 
-    Y_t operator()();
-private:
-    /// @brief a seed source for the random number engine
-    std::random_device rd;
-    /// @brief mersenne_twister_engine seeded with rd()
-    std::mt19937 gen;
-    std::uniform_int_distribution<Y_t> distrib;
-};
-
-class DTree {
-public:
-    DTree();
-
-    void insert(Value_t value, X_t x, Y_t y);
-    void insert(Value_t value, X_t x);
-
-    friend ostream& operator<<(ostream& output, DTree& ro);
-
-    Value_t operator()();
-
-
-
-    class Node {
-    public:
-        Node(Value_t value, X_t x, Y_t y);
-        // Node(Value_t value);
-
-        // Node* getLeft() const;
-        // Node* getRight() const;
-
-        /// @brief Comaring .x with ro
-        bool operator<(const X_t& ro) const;
-        /// @brief Comaring lo.x with ro.x
-        friend bool operator<=(const DTree::Node& lo, const DTree::Node& ro);
-        /// @brief Comaring lo.x with ro.x
-        friend bool operator>(const DTree::Node& lo, const DTree::Node& ro);
-        /// @brief Comaring lo.y with ro.y
-        friend bool operator<<=(const DTree::Node& lo, const DTree::Node& ro);
-        /// @brief Comaring lo.y with ro.y
-        friend bool operator>>(const DTree::Node& lo, const DTree::Node& ro);
-
-        Node* left;
-        Node* right;
-        Value_t value;
-        // private:
-        X_t x;
-        Y_t y;
-
-    };
-    friend bool operator<=(const DTree::Node& lo, const DTree::Node& ro);
-    friend bool operator>(const DTree::Node& lo, const DTree::Node& ro);
-    friend bool operator<<=(const DTree::Node& lo, const DTree::Node& ro);
-    friend bool operator>>(const DTree::Node& lo, const DTree::Node& ro);
-    Node* findX(X_t x);
-    static X_t getMaxX(Node* node);
-
-
-
-
-    DTree(Node* nodePtr);
-    operator Node* ();
-    operator Node const* () const;
-    bool operator==(Node const* const& ro) const;
-    bool operator==(const std::nullptr_t& ro) const;
-    bool operator!() const;
-
-    Node*& left() const;
-    Node*& right() const;
-
-    // void tempInsert(Node* newNode);
-
-    /// @brief merge
-    friend DTree operator+(const DTree& lo, const DTree& ro);
-    /// @brief split
-    friend pair<DTree, DTree> operator/(const DTree& tree, const X_t& x);
-
-    /// @brief dfs callback function type
-    typedef function<void(Value_t, void*)> DfsCBFunc_t;
-    /// @brief Deep-first tree bypass
-    void dfs(DfsCBFunc_t preorder, DfsCBFunc_t inorder, DfsCBFunc_t postorder, void* userdata = nullptr);
-
-    Node* root;
-
-    static RandomM randomm;
-};
-
-void insert(DTree& tree, int l, int k) {
-    if (tree.findX(l) == nullptr) {
-        tree.insert(k, l);
-    } else {
-        insert(tree, l + 1, tree.findX(l)->value);
-        tree.findX(l)->value = k;
+    Node(int x_) {
+        x = x_;
+        y = uniform_int_distribution <int>(0, 1E9) (gen);
+        left = nullptr;
+        right = nullptr;
     }
+
+    int value;
+};
+
+PNode tFind(PNode t, int x) {
+    if (t == nullptr) {
+        return nullptr;
+    }
+    if (t->x == x) {
+        return t;
+    }
+    if (t->x < x) {
+        return tFind(t->right, x);
+    } else {
+        return tFind(t->left, x);
+    }
+}
+
+void tOutputRecur(PNode t) {
+    if (t == nullptr) {
+        return;
+    }
+    cout << "(";
+    tOutputRecur(t->left);
+    cout << t->x;
+    tOutputRecur(t->right);
+    cout << ")";
+}
+
+void tOutput(PNode t) {
+    tOutputRecur(t);
+    cout << endl;
+}
+
+pair <PNode, PNode> tSplit(PNode t, int x) { // first: < x ; second: >= x
+    if (t == nullptr) {
+        return { nullptr, nullptr };
+    }
+    if (t->x < x) {
+        auto temp = tSplit(t->right, x);
+        t->right = temp.first;
+        return { t, temp.second };
+    } else {
+        auto temp = tSplit(t->left, x);
+        t->left = temp.second;
+        return { temp.first, t };
+    }
+}
+
+PNode tMerge(PNode l, PNode r) {
+    if (l == nullptr) {
+        return r;
+    }
+    if (r == nullptr) {
+        return l;
+    }
+    if (l->y > r->y) {
+        l->right = tMerge(l->right, r);
+        return l;
+    } else {
+        r->left = tMerge(l, r->left);
+        return r;
+    }
+}
+
+PNode tInsert(PNode t, int x, int value) {
+    auto temp = tSplit(t, x);
+    auto v = new Node(x);
+    v->value = value;
+    // (temp.first | v) | temp.second
+    auto half = tMerge(temp.first, v);
+    return tMerge(half, temp.second);
+}
+
+void tDelete(PNode t) {
+    if (t == nullptr) {
+        return;
+    }
+    tDelete(t->left);
+    tDelete(t->right);
+    delete t;
+}
+
+PNode tRemove(PNode t, int x) {
+    auto one = tSplit(t, x);
+    auto two = tSplit(one.second, x + 1);
+    // TODO one.first | two.first | two.second
+    tDelete(two.first);
+    return tMerge(one.first, two.second);
+}
+
+void func(PNode& root, int l, int k) {
+    PNode actual = tFind(root, l);
+    if (!actual) {
+        root = tInsert(root, l, k);
+    } else {
+        func(root, l + 1, actual->value);
+        actual->value = k;
+    }
+}
+
+void tOutputRecurB(PNode t, int& i, int& max, stringstream& output) {
+    if (t == nullptr) {
+        return;
+    }
+    // cout << "(";
+    tOutputRecurB(t->left, i, max, output);
+    while (i++ < t->x) output << "0 ";
+    output << t->value << " ";
+    max = t->x;
+    tOutputRecurB(t->right, i, max, output);
+    // cout << ")";
 }
 
 int main() {
     int n = 0, m = 0;
     cin >> n >> m;
 
-    DTree tree;
+    PNode root = nullptr;
 
-    for (int i = 0; i < n; ++i) {
+    for (int i = 1; i <= n; ++i) {
         int l = 0;
         cin >> l;
-        insert(tree, l, i);
+        func(root, l, i);
     }
 
-    int max = DTree::getMaxX(tree.root);
+    int i = 1;
+    int max = 0;
+    stringstream output;
+    tOutputRecurB(root, i, max, output);
+    cout << max << endl << output.str() << endl;
 
-    for (int i = 1; i <= max; ++i) {
-        if (tree.findX(i)) {
-            cout << tree.findX(i)->value;
-        } else {
-            cout << 0;
-        }
-        cout << " ";
-    }
+    // 	int const size = 1000000; // test for speed
+    // 	PNode root = nullptr;
+    // 	tOutput (root);
+    // 	for (int i = 1; i <= size * 2; i += 2)
+    // 	{
+    // 		root = tInsert (root, i);
+    // //		tOutput (root); // set size to 10 and then uncomment
+    // 	}
+    // 	for (int i = 1; i <= size; i++)
+    // 	{
+    // //		cout << tFind (root, i); // set size to 10 and then uncomment
+    // 		tFind (root, i);
+    // 	}
+    // 	for (int i = 1; i <= size * 2; i += 2)
+    // 	{
+    // 		if (size * 2 - i == 111) tOutput (root);
+    // 		root = tRemove (root, i);
+    // //		tOutput (root); // set size to 10 and then uncomment
+    // 		if (size * 2 - i == 111) tOutput (root);
+    // 	}
 
-    // cout << tree;
 
     return 0;
-}
-
-// ---------------------------------------------                    ---------------------------------------------
-// ----------------------------------------------                  ----------------------------------------------
-// -----------------------------------------------                -----------------------------------------------
-// ------------------------------------------------              ------------------------------------------------
-// -------------------------------------------------            -------------------------------------------------
-// --------------------------------------------------          --------------------------------------------------
-// ---------------------------------------------------        ---------------------------------------------------
-// ----------------------------------------------------      ----------------------------------------------------
-// -----------------------------------------------------    -----------------------------------------------------
-// ------------------------------------------------------  ------------------------------------------------------
-// --------------------------------------------------------------------------------------------------------------
-
-DTree::Node* DTree::findX(X_t x) {
-    if (root->x == x) return root;
-    if (x < root->x) return root->left;
-    return root->right;
-}
-
-X_t DTree::getMaxX(Node* node) {
-    if (node->right == nullptr) {
-        return node->x;
-    }
-    return getMaxX(node->right);
-}
-
-
-RandomM::RandomM() : rd(), gen(rd()), distrib(0) {
-}
-
-Y_t RandomM::operator()() {
-    return distrib(gen);
-}
-
-// ----------------------------------------------- DTREE  segment -----------------------------------------------
-// ---------------------------------------------------(public)---------------------------------------------------
-// -----------------------------------------------------    -----------------------------------------------------
-// --------------------------------------------------------------------------------------------------------------
-
-RandomM DTree::randomm;
-
-DTree::DTree() : root(nullptr) {}
-
-void DTree::insert(Value_t value, X_t x, Y_t y) {
-    Node* newNode = new Node(value, x, y);
-
-    if (!*this) {
-        root = newNode;
-        return;
-    }
-
-    ///          \x/
-    /// spl[0] | {x} | spl[1]
-    auto spl = *this / x;
-    *this = spl.first + newNode + spl.second;
-
-    return;
-}
-
-void DTree::insert(Value_t value, X_t x) {
-    insert(value, x, randomm());
-}
-
-ostream& operator<<(ostream& output, DTree& ro) {
-    ro.dfs(
-        [](Value_t value, void* outputPtr) -> void {
-        ostream& output = *(ostream*)outputPtr;
-
-        output << "(";
-    },
-
-        [](Value_t value, void* outputPtr) -> void {
-        ostream& output = *(ostream*)outputPtr;
-
-        output << value;
-    },
-
-        [](Value_t value, void* outputPtr) -> void {
-        ostream& output = *(ostream*)outputPtr;
-
-        output << ")";
-    },
-
-        (void*)&output
-    );
-
-    return output;
-}
-
-Value_t DTree::operator()() {
-    if (!*this) return 0;
-
-    return root->value;
-}
-
-// --------------------------------------------- DTREENODE  segment ---------------------------------------------
-// ---------------------------------------------------        ---------------------------------------------------
-// -----------------------------------------------------    -----------------------------------------------------
-// --------------------------------------------------------------------------------------------------------------
-
-DTree::Node::Node(Value_t value, X_t x, Y_t y) :
-    value(value),
-    x(x),
-    y(y),
-    left(nullptr),
-    right(nullptr) {
-}
-
-// DTree::Node::Node(Value_t value) : DTree::Node::Node(value, X_t(), Y_t()) {}
-
-// DTree::Node* DTree::Node::getLeft() const {
-//     return left;
-// }
-// DTree::Node* DTree::Node::getRight() const {
-//     return right;
-// }
-
-bool DTree::Node::operator<(const X_t& ro) const {
-    return x < ro;
-}
-
-bool operator<=(const DTree::Node& lo, const DTree::Node& ro) {
-    return lo.x <= ro.x;
-}
-
-bool operator>(const DTree::Node& lo, const DTree::Node& ro) {
-    return lo.x > ro.x;
-}
-
-bool operator<<=(const DTree::Node& lo, const DTree::Node& ro) {
-    return lo.y <= ro.y;
-}
-
-bool operator>>(const DTree::Node& lo, const DTree::Node& ro) {
-    return lo.y > ro.y;
-}
-
-// ----------------------------------------------- DTREE  segment -----------------------------------------------
-// --------------------------------------------------(private)---------------------------------------------------
-// -----------------------------------------------------    -----------------------------------------------------
-// --------------------------------------------------------------------------------------------------------------
-
-DTree::DTree(Node* nodePtr) : root(nodePtr) {
-}
-
-DTree::operator Node* () {
-    return root;
-}
-DTree::operator Node const* () const {
-    return root;
-}
-
-bool DTree::operator==(Node const* const& ro) const {
-    return root == ro;
-}
-
-bool DTree::operator==(const std::nullptr_t& ro) const {
-    return *this == (Node*)ro;
-}
-
-bool DTree::operator!() const {
-    return (*this == nullptr);
-}
-
-DTree::Node*& DTree::left() const {
-    return root->left;
-}
-DTree::Node*& DTree::right() const {
-    return root->right;
-}
-
-DTree operator+(const DTree& lo, const  DTree& ro) {
-    if (!lo) return ro;
-    if (!ro) return lo;
-
-    if (*lo <<= *ro) {
-        ro.left() = (lo + ro.left());
-        return ro;
-    }
-
-    lo.right() = (lo.right() + ro);
-    return lo;
-}
-
-pair<DTree, DTree> operator/(const DTree& tree, const X_t& x) {
-    if (!tree) return { tree, tree };
-
-    if (*tree < x) {
-        ///                             \x/
-        /// tree.left | tree.root | r[0] | r[1]
-        auto r = DTree(tree.right()) / x;
-        tree.right() = r.first;
-        return { tree, r.second };
-    } else {
-        ///     \x/
-        /// l[0] | l[1] | tree.root | tree.right
-        auto r = DTree(tree.left()) / x;
-        tree.left() = r.second;
-        return { r.first, tree };
-    }
-}
-
-void DTree::dfs(DfsCBFunc_t preorder, DfsCBFunc_t inorder, DfsCBFunc_t postorder, void* userdata) {
-    if (!*this) return;
-
-    if (preorder) preorder(root->value, userdata);
-
-    DTree(left()).dfs(preorder, inorder, postorder, userdata);
-
-    if (inorder) inorder(root->value, userdata);
-
-    DTree(right()).dfs(preorder, inorder, postorder, userdata);
-
-    if (postorder) postorder(root->value, userdata);
 }
