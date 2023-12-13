@@ -116,12 +116,31 @@ PNode tRemove(PNode t, int x) {
     return tMerge(one.first, two.second);
 }
 
+void funcPtr(PNode& root, PNode actual, int l, int k);
+
+void funcNext(PNode& root, PNode prev, int l, int k) {
+    PNode actual = nullptr;
+    if (prev->right) {
+        actual = prev->right;
+        while (actual->left) actual = actual->left;
+        if (actual->x != prev->x + 1)
+            actual = nullptr;
+    } else {
+        actual = tFind(root, l);
+    }
+    funcPtr(root, actual, l, k);
+}
+
 void func(PNode& root, int l, int k) {
     PNode actual = tFind(root, l);
+    funcPtr(root, actual, l, k);
+}
+
+void funcPtr(PNode& root, PNode actual, int l, int k) {
     if (!actual) {
         root = tInsert(root, l, k);
     } else {
-        func(root, l + 1, actual->value);
+        funcNext(root, actual, l + 1, actual->value);
         actual->value = k;
     }
 }
