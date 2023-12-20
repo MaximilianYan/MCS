@@ -1,4 +1,4 @@
-set(CONTEST 231219_b23)
+set(CONTEST 231205_b23)
 set(PROBLEM A)
 
 cmake_minimum_required(VERSION 3.0.0)
