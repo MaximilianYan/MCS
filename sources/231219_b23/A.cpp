@@ -116,9 +116,12 @@ bool operator==(const PolHash& lo, const PolHash& ro) {
 }
 
 MultiHash::MultiHash(int nextPow) {
-    hs.emplace_back((1 << 11) - 1, (1 << 15) - 1, nextPow);
-    hs.emplace_back((1 << 11) - 2, (1 << 15) - 1, nextPow);
-    hs.emplace_back((1 << 11) - 5, (1 << 15) - 1, nextPow);
+    hs.emplace_back((1 << 11) - 1, (1 << 17) - 1, nextPow);
+    // hs.emplace_back((1 << 11) - 2, (1 << 15) - 1, nextPow);
+    // hs.emplace_back((1 << 11) - 5, (1 << 15) - 1, nextPow);
+    // hs.emplace_back((1 << 11) - 5, (1 << 17) - 3, nextPow);
+    // hs.emplace_back((1 << 11) - 5, (1 << 17) - 3, nextPow);
+    // hs.emplace_back((1 << 11) - 5, (1 << 17) - 3, nextPow);
 }
 
 void MultiHash::operator+=(int64_t ro) {
