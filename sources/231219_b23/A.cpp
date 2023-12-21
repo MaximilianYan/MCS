@@ -8,39 +8,28 @@
 
 using namespace std;
 
-template<int64_t H, const uint32_t MOD>
-class PolHash;
-
-template<int64_t H, const uint32_t MOD>
-bool operator==(const PolHash<H, MOD>& lo, const PolHash<H, MOD>& ro);
-
-template<int64_t H, const uint32_t MOD>
 class PolHash {
 public:
-    PolHash();
-    PolHash(int nextPow);
+    PolHash(int64_t H, uint32_t MOD);
+    PolHash(int64_t H, uint32_t MOD, int nextPow);
 
     void operator+=(int64_t ro);
     void next(int64_t old, int64_t young);
 
-    friend bool operator== <>(const PolHash& lo, const PolHash& ro);
+    friend bool operator==(const PolHash& lo, const PolHash& ro);
 
 private:
-    // const int HNextPow;
+    const int64_t H;
+    const uint32_t MOD;
+
     int HNextPow;
 
     int64_t sum;
 };
 
-using PolHash_u1 = PolHash<(1 << 11) - 1, (1 << 15) - 1>;
-using PolHash_u2 = PolHash<(1 << 11) - 2, (1 << 15) - 1>;
-using PolHash_u3 = PolHash<(1 << 11) - 5, (1 << 15) - 1>;
-// using PolHash_u2 = PolHash<821, 999999937>;
-
 class MultiHash {
 public:
-    MultiHash();
-    MultiHash(int nextPow);
+    MultiHash(int nextPow = 0);
 
     void operator+=(int64_t ro);
     void next(int64_t old, int64_t young);
@@ -48,9 +37,7 @@ public:
     friend bool operator==(const MultiHash& lo, const MultiHash& ro);
 
 private:
-    PolHash_u1 h1;
-    PolHash_u2 h2;
-    PolHash_u3 h3;
+    vector<PolHash> hs;
 };
 
 stringstream countIncs(string t, string s) {
@@ -101,11 +88,9 @@ int main() {
     return 0;
 }
 
-template<int64_t H, const uint32_t MOD>
-PolHash<H, MOD>::PolHash() : HNextPow(0), sum(0) {}
+PolHash::PolHash(int64_t H, uint32_t MOD) : H(H), MOD(MOD), HNextPow(0), sum(0) {}
 
-template<int64_t H, const uint32_t MOD>
-PolHash<H, MOD>::PolHash(int nextPow) : sum(0) {
+PolHash::PolHash(int64_t H, uint32_t MOD, int nextPow) : H(H), MOD(MOD), sum(0) {
     HNextPow = 1;
     for (int i = 0; i < nextPow; ++i) {
         HNextPow *= H;
@@ -113,44 +98,42 @@ PolHash<H, MOD>::PolHash(int nextPow) : sum(0) {
     }
 }
 
-template<int64_t H, const uint32_t MOD>
-void PolHash<H, MOD>::operator+=(int64_t ro) {
+void PolHash::operator+=(int64_t ro) {
     ro %= MOD;
     sum *= H;
     sum += ro;
     sum %= MOD;
 }
 
-template<int64_t H, const uint32_t MOD>
-void PolHash<H, MOD>::next(int64_t old, int64_t young) {
+void PolHash::next(int64_t old, int64_t young) {
     sum = sum * H - old * HNextPow + young;
     sum %= MOD;
     if (sum < 0) sum += MOD;
 }
 
-template<int64_t H, const uint32_t MOD>
-bool operator==(const PolHash<H, MOD>& lo, const PolHash<H, MOD>& ro) {
+bool operator==(const PolHash& lo, const PolHash& ro) {
     return lo.sum == ro.sum;
 }
 
-MultiHash::MultiHash() : h1(), h2(), h3() {}
-MultiHash::MultiHash(int nextPow) : h1(nextPow), h2(nextPow), h3(nextPow) {}
+MultiHash::MultiHash(int nextPow) {
+    hs.emplace_back((1 << 11) - 1, (1 << 15) - 1, nextPow);
+    hs.emplace_back((1 << 11) - 2, (1 << 15) - 1, nextPow);
+    hs.emplace_back((1 << 11) - 5, (1 << 15) - 1, nextPow);
+}
 
 void MultiHash::operator+=(int64_t ro) {
-    h1 += ro;
-    h2 += ro;
-    h3 += ro;
+    for (auto& h : hs)
+        h += ro;
 }
 
 void MultiHash::next(int64_t old, int64_t young) {
-    h1.next(old, young);
-    h2.next(old, young);
-    h3.next(old, young);
+    for (auto& h : hs)
+        h.next(old, young);
 }
 
 bool operator==(const MultiHash& lo, const MultiHash& ro) {
-    return
-        lo.h1 == ro.h1 &&
-        lo.h2 == ro.h2 &&
-        lo.h3 == ro.h3;
+    bool ans = true;
+    for (int i = 0; i < lo.hs.size(); ++i)
+        ans &= (lo.hs[i] == ro.hs[i]);
+    return ans;
 }
