@@ -32,8 +32,26 @@ private:
     int64_t sum;
 };
 
-using PolHash_u = PolHash<(1 << 11) - 1, (1 << 15) - 1>;
-using PolHash_u2 = PolHash<821, 999999937>;
+using PolHash_u1 = PolHash<(1 << 11) - 1, (1 << 15) - 1>;
+using PolHash_u2 = PolHash<(1 << 11) - 2, (1 << 15) - 1>;
+using PolHash_u3 = PolHash<(1 << 11) - 5, (1 << 15) - 1>;
+// using PolHash_u2 = PolHash<821, 999999937>;
+
+class MultiHash {
+public:
+    MultiHash();
+    MultiHash(int nextPow);
+
+    void operator+=(int64_t ro);
+    void next(int64_t old, int64_t young);
+
+    friend bool operator==(const MultiHash& lo, const MultiHash& ro);
+
+private:
+    PolHash_u1 h1;
+    PolHash_u2 h2;
+    PolHash_u3 h3;
+};
 
 stringstream countIncs(string t, string s) {
     stringstream ans;
@@ -42,22 +60,18 @@ stringstream countIncs(string t, string s) {
         return ans;
     }
 
-    PolHash_u sHash;
-    PolHash_u2 sHash2;
-    PolHash_u tHash(s.size());
-    PolHash_u2 tHash2(s.size());
+    MultiHash sHash;
+    MultiHash tHash(s.size());
 
     int64_t HpowS = 1;
 
     for (int i = 0; i < s.size(); ++i) {
         sHash += s[i];
-        sHash2 += s[i];
         tHash += t[i];
-        tHash2 += t[i];
     }
 
     for (int end = s.size() - 1; end < t.size(); ++end) {
-        if (sHash == tHash && sHash2 == tHash2) {
+        if (sHash == tHash) {
             bool good = true;
             // for (int i = 0; i < s.size(); ++i)
             //     if (s[s.size() - 1 - i] != t[end - i]) good = false;
@@ -67,7 +81,6 @@ stringstream countIncs(string t, string s) {
         if (end == t.size() - 1) continue;
 
         tHash.next(t[end - s.size() + 1], t[end + 1]);
-        tHash2.next(t[end - s.size() + 1], t[end + 1]);
     }
 
     return ans;
@@ -118,4 +131,26 @@ void PolHash<H, MOD>::next(int64_t old, int64_t young) {
 template<int64_t H, const uint32_t MOD>
 bool operator==(const PolHash<H, MOD>& lo, const PolHash<H, MOD>& ro) {
     return lo.sum == ro.sum;
+}
+
+MultiHash::MultiHash() : h1(), h2(), h3() {}
+MultiHash::MultiHash(int nextPow) : h1(nextPow), h2(nextPow), h3(nextPow) {}
+
+void MultiHash::operator+=(int64_t ro) {
+    h1 += ro;
+    h2 += ro;
+    h3 += ro;
+}
+
+void MultiHash::next(int64_t old, int64_t young) {
+    h1.next(old, young);
+    h2.next(old, young);
+    h3.next(old, young);
+}
+
+bool operator==(const MultiHash& lo, const MultiHash& ro) {
+    return
+        lo.h1 == ro.h1 &&
+        lo.h2 == ro.h2 &&
+        lo.h3 == ro.h3;
 }
