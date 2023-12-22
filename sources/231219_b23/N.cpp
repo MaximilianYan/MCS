@@ -60,6 +60,8 @@ int main() {
     string str;
     cin >> str;
 
+    vector<int> field(str.length(), 0);
+
     Root root;
     for (int pos = 0; pos < str.length(); ++pos) {
         Node* add = new Node(pos);
@@ -75,16 +77,21 @@ int main() {
         char minc = 'z';
 
         for (Node* pos = root.begin(); pos != root.end(); pos = pos->getR()) {
-            minc = min(minc, str[(*pos)() + i1]);
+            if (field[(*pos)()] == i1)
+                minc = min(minc, str[(*pos)() + field[(*pos)()]]);
         }
 
         for (Node* pos = root.begin(); pos != root.end(); pos = pos->getR()) {
-            if (str[(*pos)() + i1] != minc) {
-                root.eraseThis(pos);
+            if (field[(*pos)()] == i1) {
+                if (str[(*pos)() + field[(*pos)()]] == minc) {
+                    field[(*pos)()] += 1;
+                } else {
+                    root.eraseThis(pos);
 
-                continue;
+                    continue;
+                }
             }
-            if ((*pos)() + i1 == str.length()) {
+            if ((*pos)() + field[(*pos)()] == str.length()) {
                 ans = pos;
                 goto endOfFor;
             }
