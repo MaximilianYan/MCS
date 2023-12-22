@@ -42,10 +42,13 @@ public:
     Node* begin();
     Node* end();
 
+    void addBadEnd();
+    void deleteBadEnd();
+
 private:
     Node* root;
 
-    bool forFlag;
+    bool hasBadEnd;
 };
 
 int main() {
@@ -61,30 +64,25 @@ int main() {
         root <<= *add;
     }
 
+    root.addBadEnd();
+
     Node* ans = nullptr;
 
     for (int i1 = 0; i1 < str.length(); ++i1) {
         char minc = 'z';
-        // for (int pos = 0; pos < str.length() - i1; ++pos) {
-        //     if (field[pos] == i1)
-        //         minc = min(minc, str[pos + field[pos]]);
-        // }
+
         for (Node* pos = root.begin(); pos != root.end(); pos = pos->getR()) {
             if (field[(*pos)()] == i1)
                 minc = min(minc, str[(*pos)() + field[(*pos)()]]);
         }
 
-        // for (int pos = 0; pos < str.length() - i1; ++pos) {
-        //     if (field[pos] == i1) {
-        //         if (str[pos + field[pos]] == minc) {
-        //             field[pos] += 1;
-        //         }
-        //     }
-        // }
         for (Node* pos = root.begin(); pos != root.end(); pos = pos->getR()) {
             if (field[(*pos)()] == i1) {
                 if (str[(*pos)() + field[(*pos)()]] == minc) {
                     field[(*pos)()] += 1;
+                    // } else {
+
+                    //     continue;
                 }
             }
             if ((*pos)() + field[(*pos)()] == str.length()) {
@@ -166,7 +164,7 @@ void Node::normaliseConnections(Node* left, Node* center, Node* right) {
     center->right = right;
 }
 
-Root::Root() : root(nullptr) {}
+Root::Root() : root(nullptr), hasBadEnd(false) {}
 
 Root::~Root() {
     while (!root->isSingle()) {
@@ -182,14 +180,27 @@ void Root::operator<<=(Node& ro) {
 }
 
 Node* Root::begin() {
-    forFlag = true;
     return root;
 }
 
 Node* Root::end() {
-    if (forFlag) {
-        forFlag = false;
-        return nullptr;
-    }
-    return root;
+    if (hasBadEnd)
+        return root->getL();
+    return nullptr;
+}
+
+void Root::addBadEnd() {
+    if (hasBadEnd) return;
+
+    *root <<= *(new Node);
+
+    hasBadEnd = true;
+}
+
+void Root::deleteBadEnd() {
+    if (!hasBadEnd) return;
+
+    delete root->getL();
+
+    hasBadEnd = false;
 }
