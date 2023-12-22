@@ -15,6 +15,7 @@ public:
 
     void extract();
     bool isSingle();
+    bool isDual();
     void operator<<=(Node& ro);
     void operator>>=(Node& ro);
 
@@ -44,6 +45,10 @@ public:
 
     void addBadEnd();
     void deleteBadEnd();
+
+    bool isSingle();
+
+    void eraseThis(Node*& node);
 
 private:
     Node* root;
@@ -80,15 +85,21 @@ int main() {
             if (field[(*pos)()] == i1) {
                 if (str[(*pos)() + field[(*pos)()]] == minc) {
                     field[(*pos)()] += 1;
-                    // } else {
+                } else {
+                    root.eraseThis(pos);
 
-                    //     continue;
+                    continue;
                 }
             }
             if ((*pos)() + field[(*pos)()] == str.length()) {
                 ans = pos;
                 goto endOfFor;
             }
+        }
+
+        if (root.isSingle()) {
+            ans = root.begin();
+            break;
         }
     }
 endOfFor:
@@ -125,6 +136,10 @@ bool Node::isSingle() {
         cout << "ERR:: " << __LINE__ << endl;
     }
     return left == this;
+}
+
+bool Node::isDual() {
+    return left == right;
 }
 
 void Node::operator<<=(Node& ro) {
@@ -192,7 +207,7 @@ Node* Root::end() {
 void Root::addBadEnd() {
     if (hasBadEnd) return;
 
-    *root <<= *(new Node);
+    *root <<= *(new Node(-239));
 
     hasBadEnd = true;
 }
@@ -203,4 +218,39 @@ void Root::deleteBadEnd() {
     delete root->getL();
 
     hasBadEnd = false;
+}
+
+bool Root::isSingle() {
+    if (hasBadEnd) {
+        return root->isDual();
+    } else {
+        return root->isSingle();
+    }
+}
+
+void Root::eraseThis(Node*& node) {
+    // if (hasBadEnd) {
+    //     if (node == end()) {
+    //         cout << "ERR: " << __LINE__ << endl;
+    //     }
+    // }
+    if (isSingle()) {
+        if (node != root) {
+            cout << "ERR: " << __LINE__ << endl;
+            return;
+        }
+
+        deleteBadEnd();
+        delete root;
+        root = nullptr;
+        return;
+    }
+
+    Node* oldLeft = node->getL();
+    Node* old = node;
+    node = oldLeft;
+
+    if (root == old) root = old->getR();
+
+    delete old;
 }
