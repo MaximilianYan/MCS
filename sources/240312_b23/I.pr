@@ -1,0 +1,119 @@
+function sum (id, pr, n, a):
+    lo := id * n / pr
+    hi := (id + 1) * n / pr
+    continue := 1
+    if n < 300:
+        if id != 0:
+            continue := 0
+        else:
+            lo := 0
+            hi := n
+
+    if continue:
+
+        delta := hi - lo
+        MOD := 1_000_000_007
+
+        count0 := array(delta + 3)
+        count1 := array(delta + 3)
+        count2 := array(delta + 3)
+
+        count0[0] := 1
+
+        if id != 0:
+            count1[1] := 1
+            count2[2] := 1
+
+        for i := 0 until delta:
+            for step := 1 rangeto a[lo + i]:
+                if (i + step) < (delta + 3):
+                    count0[i + step] += count0[i]
+                    count1[i + step] += count1[i]
+                    count2[i + step] += count2[i]
+
+
+        start0 := 0
+        start1 := 0
+        start2 := 0
+        if id == 0:
+            send(id + 1, count0[delta + 0] % MOD)
+            send(id + 1, count0[delta + 1] % MOD)
+            send(id + 1, count0[delta + 2] % MOD)
+
+            if n < 300:
+                print(count0[delta - 1])
+
+
+        else:
+            start0 := receive(id - 1)
+            start1 := receive(id - 1)
+            start2 := receive(id - 1)
+
+            count0[delta + 0] *= start0
+            count0[delta + 1] *= start0
+            count0[delta + 2] *= start0
+
+            count1[delta + 0] *= start1
+            count1[delta + 1] *= start1
+            count1[delta + 2] *= start1
+
+            count2[delta + 0] *= start2
+            count2[delta + 1] *= start2
+            count2[delta + 2] *= start2
+
+
+            count0[delta + 0] %= MOD
+            count0[delta + 1] %= MOD
+            count0[delta + 2] %= MOD
+
+            count1[delta + 0] %= MOD
+            count1[delta + 1] %= MOD
+            count1[delta + 2] %= MOD
+
+            count2[delta + 0] %= MOD
+            count2[delta + 1] %= MOD
+            count2[delta + 2] %= MOD
+
+            finish0 := 0
+            finish1 := 0
+            finish2 := 0
+
+            finish0 += count0[delta + 0]
+            finish0 += count1[delta + 0]
+            finish0 += count2[delta + 0]
+
+            finish1 += count0[delta + 1]
+            finish1 += count1[delta + 1]
+            finish1 += count2[delta + 1]
+
+            finish2 += count0[delta + 2]
+            finish2 += count1[delta + 2]
+            finish2 += count2[delta + 2]
+
+            finish0 %= MOD
+            finish1 %= MOD
+            finish2 %= MOD
+
+            if id != pr - 1:
+                send(id + 1, finish0)
+                send(id + 1, finish1)
+                send(id + 1, finish2)
+            
+            else:
+                count0[delta - 1] *= start0
+                count1[delta - 1] *= start1
+                count2[delta - 1] *= start2
+
+                count0[delta - 1] %= MOD
+                count1[delta - 1] %= MOD
+                count2[delta - 1] %= MOD
+
+                finish := 0
+
+                finish += count0[delta - 1]
+                finish += count1[delta - 1]
+                finish += count2[delta - 1]
+
+                print(finish)
+
+
