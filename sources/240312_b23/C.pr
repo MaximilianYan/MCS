@@ -1,0 +1,31 @@
+function sum (id, pr, n, a):
+    lo := id * n / pr
+    hi := (id + 1) * n / pr
+
+    continue := 1
+    num := 0
+
+    while (continue):
+        has0 := 0
+        for i := lo until hi:
+            if a[i] == num:
+                has0 := 1
+                #print(778000+i)
+                #print(778100+a[i])
+                #print(778200+num)
+        
+        send(0, has0)
+
+        if id == 0:
+            has0 := 0
+            for k := 0 until pr:
+                has0 |= receive(k)
+
+            if has0 == 0:
+                print(num)
+            #print(7000+num)
+            for k := 0 until pr:
+                send(k, has0)
+        
+        continue := receive(0)
+        num += 1
