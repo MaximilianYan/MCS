@@ -3,6 +3,7 @@
 #include <functional>
 #include <utility>
 #include <algorithm>
+#include <stack>
 
 using namespace std;
 
@@ -40,7 +41,7 @@ public:
     DTree l() const;
     DTree r() const;
 
-private:
+    // private: !!!!!!!ИЗМЕНЕНИЕ
     class Node {
     public:
         Node(Value_t value, X_t x, Y_t y);
@@ -96,8 +97,9 @@ private:
     typedef function<void(Value_t, void*)> DfsCBFunc_t;
     /// @brief Deep-first tree bypass
     void dfs(DfsCBFunc_t preorder, DfsCBFunc_t inorder, DfsCBFunc_t postorder, void* userdata = nullptr);
-
+public: //!!!!! ИЗМЕНЕНИЕ
     Node* root;
+private:
 
     static RandomM randomm;
 };
@@ -126,34 +128,69 @@ int main() {
         }
 
         sort(input.begin(), input.end(), [](const NodeInput& lo, const NodeInput& ro) -> bool {
-            return lo.y < ro.y;
+            return lo.x < ro.x;
         });
 
-        vector<DTree> leaves;
+        // vector<DTree> leaves;
+
+        stack<DTree::Node*> upstair;
+        DTree::Node* prev = nullptr;
 
         for (const NodeInput& node : input) {
             DTree newNode;
             newNode.insert(node.i, node.x, -node.y);
             nodes[node.i] = newNode;
 
-            if (leaves.empty() || leaves.rbegin()->lessX(newNode)) {
-                leaves.push_back(newNode);
-            } else
-                for (int i = 0; i < leaves.size(); ++i) {
-                    if (!leaves[i].lessX(newNode)) {
-                        leaves.insert(leaves.begin() + i, newNode);
+            if (!prev) {
+                tree.root = newNode.root;
+                prev = newNode.root;
 
-                        if (i > 0 && !!leaves[i - 1].l() && !!leaves[i - 1].r()) {
-                            leaves.erase(leaves.begin() + i - 1);
-                            i--;
-                        }
-                        if (i < (leaves.size() - 1) && !!leaves[i + 1].l() && !!leaves[i + 1].r()) {
-                            leaves.erase(leaves.begin() + i + 1);
-                        }
+                continue;
+            }
 
-                        break;
-                    }
-                }
+            if (*newNode.root <<= *prev) {
+                prev->right = newNode.root;
+                upstair.emplace(prev);
+                prev = newNode.root;
+                continue;
+            }
+
+            DTree::Node* prevPrev = nullptr;
+            while (!upstair.empty() && (*prev <<= *newNode.root)) {
+                prevPrev = prev;
+                prev = upstair.top();
+                upstair.pop();
+            }
+
+            if (*newNode.root <<= *prev) {
+                prev->right = newNode.root;
+                newNode.root->left = prevPrev;
+            } else {
+                newNode.root->left = tree.root;
+                tree.root = newNode.root;
+            }
+            prev = newNode.root;
+
+
+
+            // if (leaves.empty() || leaves.rbegin()->lessX(newNode)) {
+            //     leaves.push_back(newNode);
+            // } else
+            //     for (int i = 0; i < leaves.size(); ++i) {
+            //         if (!leaves[i].lessX(newNode)) {
+            //             leaves.insert(leaves.begin() + i, newNode);
+
+            //             if (i > 0 && !!leaves[i - 1].l() && !!leaves[i - 1].r()) {
+            //                 leaves.erase(leaves.begin() + i - 1);
+            //                 i--;
+            //             }
+            //             if (i < (leaves.size() - 1) && !!leaves[i + 1].l() && !!leaves[i + 1].r()) {
+            //                 leaves.erase(leaves.begin() + i + 1);
+            //             }
+
+            //             break;
+            //         }
+            //     }
         }
     }
     // cout << tree << endl;
