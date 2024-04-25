@@ -1,0 +1,63 @@
+function sum (id, pr, n, a):
+    lo := id * n / pr
+    hi := (id + 1) * n / pr
+
+    sAll := 0
+    sLMax := 0
+    for i := lo until hi:
+        sAll += a[i]
+        if sAll > sLMax:
+            sLMax := sAll
+
+    sR := 0
+    sRMax := 0
+    for i := lo until hi:
+        sR += a[hi - 1 - i + lo]
+        if sR > sRMax:
+            sRMax := sR
+
+
+    temp := 0
+    maxIn := 0
+    for i := lo until hi:
+        temp += a[i]
+        if temp < 0:
+            temp := 0
+        
+        if temp > maxIn:
+            maxIn := temp
+
+
+    send (0, sLMax)
+    send (0, sAll - sLMax - sRMax)
+    send (0, sRMax)
+    send (0, maxIn)
+
+    if id == 0:
+        size := pr * 3
+        row := array(size)
+        for k := 0 until pr:
+            i := k * 3 + 0
+            row[i] := receive (k)
+            i := k * 3 + 1
+            row[i] := receive (k)
+            i := k * 3 + 2
+            row[i] := receive (k)
+        
+        maxSSS := 0
+        for k := 0 until pr:
+            in := receive (k)
+            if in > maxSSS:
+                maxSSS := in
+            
+        tempSSS := 0
+
+        for i := 0 until size:
+            tempSSS += row[i]
+            if tempSSS < 0:
+                tempSSS := 0
+            
+            if tempSSS > maxSSS:
+                maxSSS := tempSSS
+
+        print (maxSSS)
