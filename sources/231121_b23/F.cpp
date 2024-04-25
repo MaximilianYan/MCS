@@ -2,6 +2,7 @@
 #include <random>
 #include <functional>
 #include <utility>
+#include <cstdio>
 
 using namespace std;
 
@@ -27,8 +28,9 @@ class DTree {
 public:
     DTree();
 
-    void insert(Value_t value, X_t x, Y_t y);
-    void insert(Value_t value, X_t x);
+    // void insert(Value_t value, X_t x, Y_t y);
+    // void insert(Value_t value, X_t x);
+    void insertRight(Value_t value);
 
     void erase(X_t x);
 
@@ -39,26 +41,26 @@ public:
     Value_t findKMax(int k);
     Value_t findKey(X_t k);
 
-    void wrtieDownLR(vector<X_t>& keys, int l, int r);
+    // void wrtieDownLR(vector<X_t>& keys, int l, int r);
 
 private:
     class Node {
     public:
-        Node(Value_t value, X_t x, Y_t y);
+        Node(Value_t value/*, X_t x*/, Y_t y);
         ~Node();
         // Node(Value_t value);
 
         // Node* getLeft() const;
         // Node* getRight() const;
 
-        /// @brief Comaring .x with ro
-        bool operator<(const X_t& ro) const;
-        /// @brief Comaring .x with ro
-        bool eqX(const X_t& ro) const;
-        /// @brief Comaring lo.x with ro.x
-        friend bool operator<=(const DTree::Node& lo, const DTree::Node& ro);
-        /// @brief Comaring lo.x with ro.x
-        friend bool operator>(const DTree::Node& lo, const DTree::Node& ro);
+        // /// @brief Comaring .x with ro
+        // bool operator<(const X_t& ro) const;
+        // /// @brief Comaring .x with ro
+        // bool eqX(const X_t& ro) const;
+        // /// @brief Comaring lo.x with ro.x
+        // friend bool operator<=(const DTree::Node& lo, const DTree::Node& ro);
+        // /// @brief Comaring lo.x with ro.x
+        // friend bool operator>(const DTree::Node& lo, const DTree::Node& ro);
         /// @brief Comaring lo.y with ro.y
         friend bool operator<<=(const DTree::Node& lo, const DTree::Node& ro);
         /// @brief Comaring lo.y with ro.y
@@ -72,13 +74,13 @@ private:
         Value_t value;
     private:
     public:
-        X_t x;
+        // X_t x;
     private:
         Y_t y;
 
     };
-    friend bool operator<=(const DTree::Node& lo, const DTree::Node& ro);
-    friend bool operator>(const DTree::Node& lo, const DTree::Node& ro);
+    // friend bool operator<=(const DTree::Node& lo, const DTree::Node& ro);
+    // friend bool operator>(const DTree::Node& lo, const DTree::Node& ro);
     friend bool operator<<=(const DTree::Node& lo, const DTree::Node& ro);
     friend bool operator>>(const DTree::Node& lo, const DTree::Node& ro);
 
@@ -98,7 +100,8 @@ private:
     /// @brief merge
     friend DTree operator+(const DTree& lo, const DTree& ro);
     /// @brief split
-    friend pair<DTree, DTree> operator/(const DTree& tree, const X_t& x);
+    // friend pair<DTree, DTree> operator/(const DTree& tree, const X_t& x);
+    friend pair<DTree, DTree> operator/(const DTree& tree, const X_t& sizeL);
 
     /// @brief dfs callback function type
     typedef function<void(Value_t, void*)> DfsCBFunc_t;
@@ -117,39 +120,31 @@ private:
 
 
 int main() {
+    cin.tie(0);
+    cout.tie(0);
+    ios::sync_with_stdio(0);
+
     DTree tree;
 
     int n = 0, m = 0;
     cin >> n >> m;
 
     for (int i = 1; i <= n; ++i) {
-        tree.insert(i, i);
+        tree.insertRight(i);
     }
 
     for (int i = 1; i <= m; ++i) {
         int l = 0, r = 0;
         cin >> l >> r;
-        vector<X_t> keys;
-        tree.wrtieDownLR(keys, l, r);
-        // cout << l << "!" << r << endl;
 
-        for (X_t x : keys) {
-            Value_t value = tree.findKey(x);
-            tree.erase(x);
-            tree.insert(value, x - n * i);
-        }
-        // cout << l << "!" << r << endl;
+        // cout << "tree:             " << tree << endl;
+        auto leftTree = tree / (l - 1);
+        // cout << ":                 " << leftTree.first << "|" << leftTree.second << endl;
+        auto rightTree = leftTree.second / (r - l + 1);
+        // cout << ":                 " << leftTree.first << "|" << rightTree.first << "|" << rightTree.second << endl;
+        tree = rightTree.first + leftTree.first + rightTree.second;
+        // cout << ":                 " << tree << endl;
     }
-    // cout << "!!!" << endl;
-
-    // for (int i = 0; i < int(1e6); ++i) {
-    //     DTree temp;
-    //     temp.insert(i, i);
-    //     tree = (tree + temp);
-    // }
-
-    // cout << tree;
-    // cout << "done" << endl;
 
     cout << tree << endl;
 
@@ -184,8 +179,28 @@ RandomM DTree::randomm;
 
 DTree::DTree() : root(nullptr) {}
 
-void DTree::insert(Value_t value, X_t x, Y_t y) {
-    Node* newNode = new Node(value, x, y);
+// void DTree::insert(Value_t value, X_t x, Y_t y) {
+//     Node* newNode = new Node(value, x, y);
+
+//     if (!*this) {
+//         root = newNode;
+//         return;
+//     }
+
+//     ///          \x/
+//     /// spl[0] | {x} | spl[1]
+//     auto spl = *this / x;
+//     *this = spl.first + newNode + spl.second;
+
+//     return;
+// }
+
+// void DTree::insert(Value_t value, X_t x) {
+//     insert(value, x, randomm());
+// }
+
+void DTree::insertRight(Value_t value) {
+    Node* newNode = new Node(value, randomm());
 
     if (!*this) {
         root = newNode;
@@ -194,15 +209,12 @@ void DTree::insert(Value_t value, X_t x, Y_t y) {
 
     ///          \x/
     /// spl[0] | {x} | spl[1]
-    auto spl = *this / x;
-    *this = spl.first + newNode + spl.second;
+    // auto spl = *this / x;
+    *this = *this + newNode;
 
     return;
 }
 
-void DTree::insert(Value_t value, X_t x) {
-    insert(value, x, randomm());
-}
 
 void DTree::erase(X_t x) {
     ///          \x/
@@ -261,44 +273,44 @@ Value_t DTree::findKMax(int k) {
     return DTree(right()).findKMax(k - DTree(left()).size() - 1);
 }
 
-Value_t DTree::findKey(X_t k) {
-    if (this->root->eqX(k)) {
-        return (*this)();
-    }
+// Value_t DTree::findKey(X_t k) {
+//     if (this->root->eqX(k)) {
+//         return (*this)();
+//     }
 
-    if (*this->root < k) {
-        return DTree(right()).findKey(k);
-    }
+//     if (*this->root < k) {
+//         return DTree(right()).findKey(k);
+//     }
 
-    return DTree(left()).findKey(k);
-}
+//     return DTree(left()).findKey(k);
+// }
 
-void DTree::wrtieDownLR(vector<X_t>& keys, int l, int r) {
-    struct Userdata {
-        vector<X_t>& keys;
-        int number;
-        int l, r;
-    };
+// void DTree::wrtieDownLR(vector<X_t>& keys, int l, int r) {
+//     struct Userdata {
+//         vector<X_t>& keys;
+//         int number;
+//         int l, r;
+//     };
 
-    Userdata userdata{ keys, 0, l, r };
-    deepDfs(
-        [](Node* root, void* userdata) -> void {},
+//     Userdata userdata{ keys, 0, l, r };
+//     deepDfs(
+//         [](Node* root, void* userdata) -> void {},
 
-        [](Node* root, void* userdata) -> void {
-        ((Userdata*)userdata)->number++;
+//         [](Node* root, void* userdata) -> void {
+//         ((Userdata*)userdata)->number++;
 
-        if (
-            ((Userdata*)userdata)->number >= ((Userdata*)userdata)->l &&
-            ((Userdata*)userdata)->number <= ((Userdata*)userdata)->r
-            )
-            ((Userdata*)userdata)->keys.emplace_back(root->x);
-    },
+//         if (
+//             ((Userdata*)userdata)->number >= ((Userdata*)userdata)->l &&
+//             ((Userdata*)userdata)->number <= ((Userdata*)userdata)->r
+//             )
+//             ((Userdata*)userdata)->keys.emplace_back(root->x);
+//     },
 
-        [](Node* root, void* userdata) -> void {},
+//         [](Node* root, void* userdata) -> void {},
 
-        (void*)&userdata
-    );
-}
+//         (void*)&userdata
+//     );
+// }
 
 
 // --------------------------------------------- DTREENODE  segment ---------------------------------------------
@@ -306,9 +318,9 @@ void DTree::wrtieDownLR(vector<X_t>& keys, int l, int r) {
 // -----------------------------------------------------    -----------------------------------------------------
 // --------------------------------------------------------------------------------------------------------------
 
-DTree::Node::Node(Value_t value, X_t x, Y_t y) :
+DTree::Node::Node(Value_t value/*, X_t x*/, Y_t y) :
     value(value),
-    x(x),
+    // x(x),
     y(y),
     left(nullptr),
     right(nullptr),
@@ -329,21 +341,21 @@ DTree::Node::~Node() {
 //     return right;
 // }
 
-bool DTree::Node::operator<(const X_t& ro) const {
-    return x < ro;
-}
+// bool DTree::Node::operator<(const X_t& ro) const {
+//     return x < ro;
+// }
 
-bool DTree::Node::eqX(const X_t& ro) const {
-    return x == ro;
-}
+// bool DTree::Node::eqX(const X_t& ro) const {
+//     return x == ro;
+// }
 
-bool operator<=(const DTree::Node& lo, const DTree::Node& ro) {
-    return lo.x <= ro.x;
-}
+// bool operator<=(const DTree::Node& lo, const DTree::Node& ro) {
+//     return lo.x <= ro.x;
+// }
 
-bool operator>(const DTree::Node& lo, const DTree::Node& ro) {
-    return lo.x > ro.x;
-}
+// bool operator>(const DTree::Node& lo, const DTree::Node& ro) {
+//     return lo.x > ro.x;
+// }
 
 bool operator<<=(const DTree::Node& lo, const DTree::Node& ro) {
     return lo.y <= ro.y;
@@ -411,23 +423,53 @@ DTree operator+(const DTree& lo, const  DTree& ro) {
     return lo;
 }
 
-pair<DTree, DTree> operator/(const DTree& tree, const X_t& x) {
+// pair<DTree, DTree> operator/(const DTree& tree, const X_t& x) {
+//     if (!tree) return { tree, tree };
+
+//     if (*tree < x) {
+//         ///                             \x/
+//         /// tree.left | tree.root | r[0] | r[1]
+//         auto r = DTree(tree.right()) / x;
+//         tree.right() = r.first;
+//         tree.root->updateSize();
+//         return { tree, r.second };
+//     } else {
+//         ///     \x/
+//         /// l[0] | l[1] | tree.root | tree.right
+//         auto l = DTree(tree.left()) / x;
+//         tree.left() = l.second;
+//         tree.root->updateSize();
+//         return { l.first, tree };
+//     }
+// }
+
+pair<DTree, DTree> operator/(const DTree& tree, const X_t& sizeL) {
     if (!tree) return { tree, tree };
 
-    if (*tree < x) {
-        ///                             \x/
-        /// tree.left | tree.root | r[0] | r[1]
-        auto r = DTree(tree.right()) / x;
-        tree.right() = r.first;
-        tree.root->updateSize();
-        return { tree, r.second };
-    } else {
+    if (DTree(tree.left()).size() > sizeL) {
         ///     \x/
         /// l[0] | l[1] | tree.root | tree.right
-        auto l = DTree(tree.left()) / x;
+        auto l = DTree(tree.left()) / sizeL;
         tree.left() = l.second;
         tree.root->updateSize();
         return { l.first, tree };
+    } else if (DTree(tree.left()).size() == sizeL) {
+        DTree l = tree.left();
+        tree.left() = DTree(nullptr);
+        tree.root->updateSize();
+        return { l, tree };
+    } else if (DTree(tree.left()).size() == sizeL - 1) {
+        DTree r = tree.right();
+        tree.right() = DTree(nullptr);
+        tree.root->updateSize();
+        return { tree, r };
+    } else {
+        ///                             \x/
+        /// tree.left | tree.root | r[0] | r[1]
+        auto r = DTree(tree.right()) / (sizeL - DTree(tree.left()).size() - 1);
+        tree.right() = r.first;
+        tree.root->updateSize();
+        return { tree, r.second };
     }
 }
 
