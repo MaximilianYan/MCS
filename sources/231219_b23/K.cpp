@@ -16,7 +16,7 @@ int main() {
 
     int n = 0;
     cin >> n;
-    vector<int16_t> s(n, 0);
+    vector<int32_t> s(n, 0);
 
     vector<int64_t> zetf(s.size(), 0);
     // zetf[0] = 0;
@@ -38,17 +38,20 @@ int main() {
     }
 
 
-    int16_t nextC = 1;
+    int32_t nextC = 1;
+    int right = -1;
     for (int i = 0; i < s.size(); ++i) {
         if (zetf[i] == 0) {
             if (s[i] != 0) continue;
             s[i] = nextC;
             nextC++;
+            right = i;
             continue;
         }
 
-        for (int j = i; j < i + zetf[i]; ++j) {
+        for (int j = max(i, right + 1); j < i + zetf[i]; ++j) {
             s[j] = s[j - i];
+            right = j;
         }
     }
 
