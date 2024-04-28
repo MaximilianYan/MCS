@@ -26,9 +26,11 @@ int main() {
     int sum = 0;
     while (pos < input.size()) {
         int max = -1;
+        int maxDelta = 20;
         int maxPos = -1;
         for (int i = 0; i < k; ++i) {
-            if (curArr[i] * curArr[(i + 1) % k] > max) {
+            if (abs(curArr[i] - curArr[(i + 1) % k]) < maxDelta) {
+                maxDelta = abs(curArr[i] - curArr[(i + 1) % k]);
                 max = curArr[i] * curArr[(i + 1) % k];
                 maxPos = i;
             }
