@@ -126,10 +126,21 @@ int main() {
     copy(b.begin() + SHIFT, b.end(), bLess.begin());
     copy(b.begin(), b.begin() + SHIFT, bGrrt.begin());
 
+    vector<Num> aKarr(limit, Num(0));
+    vector<Num> bKarr(limit, Num(0));
+    for (int i = 0; i < limit; ++i)
+        aKarr[limit - 1 - i] =
+        aGrrt[limit - 1 - i] +
+        aLess[limit - 1 - i];
+    for (int i = 0; i < limit; ++i)
+        bKarr[limit - 1 - i] =
+        bGrrt[limit - 1 - i] +
+        bLess[limit - 1 - i];
+
+
     vector<int> resLess = mul(aLess, bLess);
     vector<int> resGrrt = mul(aGrrt, bGrrt);
-    vector<int> resMid1 = mul(aGrrt, bLess);
-    vector<int> resMid2 = mul(aLess, bGrrt);
+    vector<int> resKarr = mul(aKarr, bKarr);
 
     vector<int> res(2 * limit, 0);
 
@@ -138,12 +149,14 @@ int main() {
     for (int i = 0; i < SHIFT; ++i)
         res[2 * limit - 1 - i - SHIFT] =
         resLess[limit - 1 - i - SHIFT] +
-        resMid1[limit - 1 - i] +
-        resMid2[limit - 1 - i];
+        resKarr[limit - 1 - i] -
+        resLess[limit - 1 - i] -
+        resGrrt[limit - 1 - i];
     for (int i = 0; i < SHIFT; ++i)
         res[2 * limit - 1 - i - 2 * SHIFT] =
-        resMid1[limit - 1 - i - SHIFT] +
-        resMid2[limit - 1 - i - SHIFT] +
+        resKarr[limit - 1 - i - SHIFT] -
+        resLess[limit - 1 - i - SHIFT] -
+        resGrrt[limit - 1 - i - SHIFT] +
         resGrrt[limit - 1 - i];
     for (int i = 0; i < SHIFT; ++i)
         res[2 * limit - 1 - i - 3 * SHIFT] =
