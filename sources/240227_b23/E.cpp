@@ -15,7 +15,8 @@ using namespace std;
 unsigned long long int const logLimit = 19;
 unsigned long long int const limit = 1 << logLimit;
 
-unsigned long long int const DIGITS2ONE = 9;
+// unsigned long long int const DIGITS2ONE = 9;
+unsigned long long int const DIGITS2ONE = 3;
 unsigned long long int DIGITS2ONE_MOD;
 
 vector<unsigned long long int> rev;
@@ -129,9 +130,6 @@ int main() {
     vector<unsigned long long int> res = mul(a, b);
 
 
-    if (sgnA * sgnB == -1) {
-        cout << "-";
-    }
     bool started = false;
     for (unsigned long long int j = 0; j < limit; j++) {
         unsigned long long int i = limit - 1 - j;
@@ -140,7 +138,20 @@ int main() {
         for (unsigned long long int oi = 0; oi < DIGITS2ONE; ++oi) {
             mult /= 10;
 
-            started |= (((res[i] / mult) % 10) != 0) | (i == 0 && mult == 1);
+            if (!started) {
+                if (i == 0 && mult == 1) {
+                    started |= 1;
+                    if ((res[i] / mult) % 10)
+                        if (sgnA * sgnB == -1) {
+                            cout << "-";
+                        }
+                } else if (((res[i] / mult) % 10) != 0) {
+                    if (sgnA * sgnB == -1) {
+                        cout << "-";
+                    }
+                    started |= 1;
+                }
+            }
             if (started)
                 cout << ((res[i] / mult) % 10);
         }
